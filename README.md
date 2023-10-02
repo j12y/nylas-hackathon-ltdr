@@ -20,6 +20,20 @@ Thread Summary includes:
 2. Run `npm install && npm start` from the backend directory.
 3. Run `npm install && npm start` from the frontend directory.
 
+## Details
+
+For more details and a recorded video walkthrough visit the hackathon project page:
+https://devpost.com/software/long-thread-didn-t-read
+
+## Implementation
+
+- React Front-end 
+- Node.js Back-end
+- Nylas Email API: https://nylas.com
+- Hugging Face Inference API: https://huggingface.co/docs/huggingface.js/inference/classes/HfInference#summarization
+- with facebook/bart-large-cnn model for the text summarization: https://huggingface.co/docs/transformers/model_doc/bart
+
+
 
 
 
