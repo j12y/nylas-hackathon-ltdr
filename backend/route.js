@@ -3,6 +3,7 @@ const Nylas = require('nylas');
 
 const { removeHtml } = require('./utils/email-cleanup');
 const { generateEmailResponse } = require('./services/generative-ai');
+const { summarizeText } = require('./services/text-summarization');
 
 exports.generateEmailDraftAI = async (req, res) => {
   const user = res.locals.user;
@@ -12,13 +13,32 @@ exports.generateEmailDraftAI = async (req, res) => {
   
   const message = await nylas.messages.find(messageId);
 
-  const emailBody = await removeHtml(message.snippet)
+  const emailBody = await removeHtml(message.body)
   
-  const response = generateEmailResponse(emailBody);
-  const responses = {};
+  const response = await generateEmailResponse(emailBody.result);
+  console.log(response);
 
+  const responses = {};
   responses[messageId] = response;
+
   return res.json(responses);
+}
+
+function countWords(text) {
+  return text.split(' ')
+          .filter(function(n) { return n != '' })
+          .length;
+}
+
+exports.summarizeThread = async (req, res) => {
+  const user = res.locals.user;
+  const thread = req.body;
+  const text = await removeHtml(thread.text);
+
+  const wordCount = countWords(text.result);
+  const summary = await summarizeText(text.result);
+
+  return res.json({"summary": summary, count: wordCount});
 }
 
 exports.sendEmail = async (req, res) => {

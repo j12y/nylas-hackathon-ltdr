@@ -64,7 +64,7 @@ export function formatPreviewDate(date, showInterval = false) {
   }
 }
 
-function getTimeInterval(date) {
+export function getTimeInterval(date) {
   let seconds = Math.floor((new Date() - date) / 1000);
 
   let interval = seconds / 31536000;
@@ -95,3 +95,23 @@ function getTimeInterval(date) {
 const generateIntervalString = (time, unit) => {
   return ' (' + time + ` ${time > 1 ? `${unit}s` : unit} ago)`;
 };
+
+
+export function getTimePeriod(seconds) {
+    const d = Math.floor(seconds / (3600*24));
+    const h = Math.floor(seconds % (3600*24) / 3600);
+    const m = Math.floor(seconds % 3600 / 60);
+    const s = Math.floor(seconds % 60);
+
+    const days = d > 0 ? d + (d == 1 ? ' day, ' : ' days') : '';
+    const hours = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
+    const minutes = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
+    const secs = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
+
+    // TODO: this could be cleaner
+    return [
+      [d,h,m,s],
+      [days,hours,minutes,secs]
+    ]
+}
+

@@ -95,7 +95,7 @@ function App() {
       disconnectUser={disconnectUser}
       refresh={refresh}
       isLoading={isLoading}
-      title="Email sample app"
+      title="Long Thread; Didn't Read"
       toastNotification={toastNotification}
       setToastNotification={setToastNotification}
     >

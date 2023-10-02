@@ -87,6 +87,8 @@ function SendEmails({
       }
 
       const data = await res.json();
+      console.log("getDraftByAi");
+      console.log(data);
 
       return data;
 
@@ -99,7 +101,7 @@ function SendEmails({
   }
 
   useEffect(() => {
-    setBody('Enter a brief response for AI to generate a response');
+    setBody('Enter message or use AI to generate a response');
   }, [])
 
   const generateResponse = async (e) => {
@@ -107,6 +109,9 @@ function SendEmails({
     
     const messageId = draftEmail.replyToMessageId
     const draftBody = await getDraftByAi(messageId, body);
+
+    // console.log("generateResponse()");
+    // console.log(draftBody);
 
     setBody(draftBody[messageId]);
   }
@@ -170,7 +175,7 @@ function SendEmails({
               type="generate"
               onClick={generateResponse}
             >
-              Generate Response w/ AI
+              Generate AI Response
             </button>
           )
         }

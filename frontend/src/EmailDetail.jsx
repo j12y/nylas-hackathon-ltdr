@@ -6,7 +6,7 @@ import AttachmentIcon from './components/icons/icon-attachment.svg';
 import IconSync from './components/icons/IconSync.jsx';
 import IconReply from './components/icons/IconReply.jsx';
 import IconForward from './components/icons/IconForward.jsx';
-import { formatPreviewDate } from './utils/date.js';
+import { formatPreviewDate, getTimePeriod } from './utils/date.js';
 import { cleanEmailBody } from './utils/email.js';
 import SendEmails from './SendEmails';
 
@@ -95,9 +95,11 @@ function EmailDetail({
   onEmailSent,
   setToastNotification,
 }) {
+  const SERVER_URI = import.meta.env.VITE_SERVER_URI || 'http://localhost:9000';
   const [messages, dispatch] = useReducer(messageReducer, []);
   const [collapsedCount, setCollapsedCount] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('');
+  const [summarization, setSummarization] = useState('');
 
   useEffect(() => {
     const setupMessages = async () => {
@@ -125,6 +127,9 @@ function EmailDetail({
 
   const getMessage = async (message) => {
     if (message.body) return message;
+
+    // Reset summarization when fetching a different message
+    setSummarization('');
 
     setLoadingMessage(message.id);
     try {
@@ -193,6 +198,92 @@ function EmailDetail({
     }
   };
 
+
+  const generateSummarization = async (e) => {
+    e.preventDefault();
+
+    // TODO: get summarization result
+    // TODO: get wordcount
+    // console.log(selectedEmail);
+
+    let summarization = {};
+    summarization.messageCount = selectedEmail.messages.length;
+    summarization.participantCount = selectedEmail.participants.length;
+
+    // let seconds = selectedEmail.last_message_timestamp - selectedEmail.first_message_timestamp;
+    let duration = getTimePeriod(selectedEmail.last_message_timestamp - selectedEmail.first_message_timestamp);
+    summarization.duration = duration[1].join(' ');
+
+    let inactive = getTimePeriod(Math.floor(Date.now() / 1000) - Number(selectedEmail.last_message_timestamp));
+    if (inactive[0][0] >= 1) {
+      summarization.inactive = inactive[1][0];
+    } else if (inactive[0][1] >= 1) {
+      summarization.inactive = inactive[1][1];
+    } else {
+      summarization.inactive = duration[1].join(' ');
+    } 
+
+    if (duration[0][0] > 0) {
+      summarization.messageRate = summarization.messageCount / duration[0][0] + ' per day';
+    } else {
+      if (duration[0][1] > 0) {
+        summarization.messageRate = summarization.messageCount / duration[0][1] + ' per hour';
+      } else if (duration[0][2] > 0) {
+        summarization.messageRate = summarization.messageCount / duration[0][2] + ' per second';
+      }
+    }
+
+    let threadContent = '';
+    // console.log(selectedEmail.messages);
+    selectedEmail.messages.forEach((msg) => {
+      // console.log(msg);
+      threadContent += msg.snippet;
+      // TODO: would rather use body for full context of message
+      // threadContent += msg.body;
+    });
+
+    // Show partial results
+    // setSummarization(summarization);
+
+    const summarizationResult = await getSummarizationText(threadContent);
+
+    summarization.count = summarizationResult.count;
+    summarization.summary = summarizationResult.summary;
+
+    setSummarization(summarization);
+  }
+
+  const getSummarizationText = async(threadContent) => {
+    try {
+      const url = SERVER_URI + '/nylas/thread-summary';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: userId,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 'text': threadContent }),
+      });
+
+      if (!res.ok) {
+        setToastNotification('error');
+        throw new Error(res.statusText);
+      }
+
+      const data = await res.json();
+      console.log("getSummarization");
+      console.log(data);
+
+      return data;
+
+    } catch (e) {
+      console.warn(`Error fetching thread summarization:`, e);
+      setToastNotification('error');
+
+      return false;
+    }
+  }
+
   const handleToggleParticipants = (event, messageId) => {
     event.stopPropagation();
     dispatch({
@@ -260,6 +351,28 @@ function EmailDetail({
 
           {/* Each email message can be expanded and collapsed */}
           <div className="message-list">
+
+            {/* TODO: Add a summarize button and section */}
+            <div className="thread-summary">
+            {messages.length > 1 && 
+              <div>
+                <button className="outline small" type="generate" onClick={generateSummarization}>
+                  Summarize {messages.length + collapsedCount} Message Thread
+                </button> 
+                <div className="summarization-container" style={{display: summarization ? 'block' : 'none'}}>
+                  <p><b>Thread Summary:</b></p>
+                  <p>{ summarization.summary }</p>
+
+                  <p><b>Word Count:</b> { summarization.count }</p>
+                  <p><b>Thread Size:</b> { summarization.messageCount } messages from { summarization.participantCount } participants.</p>
+                  <p><b>Duration:</b> { summarization.duration } ({ summarization.messageRate })</p>
+                  <p><b>Active:</b> more than { summarization.inactive } since last message</p>
+                </div>
+              </div>
+            } 
+            </div>
+
+
             {messages?.map((message, index) => {
               const isLoading = loadingMessage === message.id;
               return (

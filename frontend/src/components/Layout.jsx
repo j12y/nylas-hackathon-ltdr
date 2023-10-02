@@ -71,8 +71,8 @@ const Layout = ({
       <main>{children}</main>
       <footer>
         <div className="logo">
-          POWERED BY
-          <img src={NylasLogo} alt="Nylas Logo" />
+          Powered By 
+          Coffee and <img src={NylasLogo} alt="Nylas Logo" />
         </div>
       </footer>
     </div>

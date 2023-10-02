@@ -76,6 +76,7 @@ app.post('/nylas/generate-auth-url', express.json(), async (req, res) => {
   return res.send(authUrl);
 });
 
+
 // '/nylas/exchange-mailbox-token': This route exchanges an authorization
 // code for an access token
 // and sends the details of the authenticated user to the client
@@ -140,6 +141,9 @@ app.get('/nylas/file', isAuthenticated, async (req, res) => {
 
 app.post('/nylas/draft-email-with-ai', isAuthenticated, express.json(), (req, res) =>
   route.generateEmailDraftAI(req, res)
+);
+app.post('/nylas/thread-summary', isAuthenticated, express.json(), (req, res) =>
+  route.summarizeThread(req, res)
 );
 
 

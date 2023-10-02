@@ -7,16 +7,6 @@ const hf = new HfInference(process.env.HUGGINGFACE_HUB_API_KEY);
 
 const retrieveAssistantResponse = str => str.trim().split('|>')[3];
 
-exports.generateEmailResponseGpt = async(startOfEmailResponse) => {
-  const answer = await hf.textGeneration({
-    model: "gpt2",
-    inputs: startOfEmailResponse,
-  });
-
-  console.log({ answer })
-  return answer;
-}
-
 const multipleCalls = async(answer) => {
   let count = 5;
 
@@ -44,10 +34,22 @@ exports.generateEmailResponse = async(emailBody) => {
 
   const response = await multipleCalls(answer);
 
-  console.log(response);
+  // console.log(response);
   return retrieveAssistantResponse(response.generated_text);
 }
 
 // this.generateEmailResponseGpt("Let's grab a coffee on");
 
 // this.generateEmailResponse("Would you like to grab a coffee?");
+
+/*
+exports.generateEmailResponseGpt = async(startOfEmailResponse) => {
+  const answer = await hf.textGeneration({
+    model: "gpt2",
+    inputs: startOfEmailResponse,
+  });
+
+  // console.log({ answer })
+  return answer;
+}
+*/
